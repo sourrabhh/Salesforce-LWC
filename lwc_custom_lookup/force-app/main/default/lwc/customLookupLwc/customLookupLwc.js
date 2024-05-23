@@ -8,21 +8,22 @@ import saveSelectedRecord from '@salesforce/apex/CustomLookupLwcController.saveS
 const DELAY = 300; // delay for debouncing input
 
 export default class CustomLookupLwc extends LightningElement {
-    @api label = 'Custom Account Lookup';
-    @api placeholder = 'search...'; 
-    @api iconName = 'standard:account';
-    @api sObjectApiName = 'Account';
+    @api label = "Custom Account Lookup";
+    @api placeholder = "search..."; 
+    @api iconName = "standard:account";
+    @api sObjectApiName = "Account";
     @api defaultRecordId = '';
     lstResult = []; 
     hasRecords = true; 
-    searchKey = '';    
+    searchKey = "";    
     isSearchLoading = false; 
     delayTimeout;
     selectedRecord = {}; 
-    @api recordId = '';
+    @api recordId = "";
+    selectedaccountRecordId = "";
 
     connectedCallback() {
-        if (this.defaultRecordId !== '') {
+        if (this.defaultRecordId !== "") {
             // this.recordId = '001XXXXXXXXXXXX'; // Temporary static value for testing
             // console.log("Record ID at connectedCallback:: ", this.recordId);
             fetchDefaultRecord({ recordId: this.defaultRecordId, sObjectApiName: this.sObjectApiName })
@@ -33,7 +34,7 @@ export default class CustomLookupLwc extends LightningElement {
                     }
                 })
                 .catch((error) => {
-                    console.error('Error fetching default record:', error);
+                    console.error("rror fetching default record:", error);
                     this.selectedRecord = {};
                 });
         }
@@ -47,7 +48,7 @@ export default class CustomLookupLwc extends LightningElement {
             this.hasRecords = data.length > 0;
             this.lstResult = data;
         } else if (error) {
-            console.error('Error:', error);
+            console.error("Error:", error);
         }
     }
 
@@ -91,6 +92,7 @@ export default class CustomLookupLwc extends LightningElement {
         this.lookupUpdatehandler(this.selectedRecord);
         // Called to save to Object Manager 
         // this.saveSelectedRecordToServer(this.selectedRecord.Id);
+        this.selectedaccountRecordId = this.selectedRecord.Id;
         this.handelSelectRecordHelper();
     }
 
@@ -113,14 +115,14 @@ export default class CustomLookupLwc extends LightningElement {
     }
 
     // Save to Object Manager
-    saveSelectedRecordToServer(recordId) {
-        saveSelectedRecord({ recordId: recordId, sObjectApiName: this.sObjectApiName })
+    saveSelectedRecordToServer(event) {
+        saveSelectedRecord({ recordId: this.recordId, accountId: this.selectedaccountRecordId })
         .then(() => {
-            console.log('Record saved successfully');
+            console.log('Account Linked successfully');
             this.dispatchEvent(
                 new ShowToastEvent({
                     title: 'Success',
-                    message: 'Record saved successfully',
+                    message: 'Account linked successfully',
                     variant: 'success',
                 }),
             );
