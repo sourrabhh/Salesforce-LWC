@@ -19,9 +19,12 @@ export default class CustomLookupLwc extends LightningElement {
     isSearchLoading = false; 
     delayTimeout;
     selectedRecord = {}; 
+    @api recordId = '';
 
     connectedCallback() {
         if (this.defaultRecordId !== '') {
+            // this.recordId = '001XXXXXXXXXXXX'; // Temporary static value for testing
+            // console.log("Record ID at connectedCallback:: ", this.recordId);
             fetchDefaultRecord({ recordId: this.defaultRecordId, sObjectApiName: this.sObjectApiName })
                 .then((result) => {
                     if (result) {
@@ -34,6 +37,7 @@ export default class CustomLookupLwc extends LightningElement {
                     this.selectedRecord = {};
                 });
         }
+        console.log("Record ID :: ",this.recordId);
     }
 
     @wire(fetchLookupData, { searchKey: '$searchKey', sObjectApiName: '$sObjectApiName' })
@@ -83,9 +87,10 @@ export default class CustomLookupLwc extends LightningElement {
         const objId = event.target.getAttribute('data-recid');
         console.log(objId);
         this.selectedRecord = this.lstResult.find(data => data.Id === objId);
+        console.log(this.selectedRecord);
         this.lookupUpdatehandler(this.selectedRecord);
         // Called to save to Object Manager 
-        this.saveSelectedRecordToServer(this.selectedRecord.Id);
+        // this.saveSelectedRecordToServer(this.selectedRecord.Id);
         this.handelSelectRecordHelper();
     }
 
@@ -95,27 +100,41 @@ export default class CustomLookupLwc extends LightningElement {
         searchBoxWrapper.classList.remove('slds-show');
         searchBoxWrapper.classList.add('slds-hide');
 
-        
         const pillDiv = this.template.querySelector('.pillDiv');
         pillDiv.classList.remove('slds-hide');
         pillDiv.classList.add('slds-show');
 
-        const submitButton = this.template.querySelector('.submitButton');
-        submitButton.classList.remove('slds-hide');
-        submitButton.classList.add('slds-show');
+        if (submitButton) {
+            submitButton.classList.remove('slds-hide');
+            submitButton.classList.add('slds-show');
+        } else {
+            console.error('Submit button not found in the template');
+        }
     }
 
     // Save to Object Manager
     saveSelectedRecordToServer(recordId) {
         saveSelectedRecord({ recordId: recordId, sObjectApiName: this.sObjectApiName })
-            .then(() => {
-                
-                console.log('Record saved successfully');
-            })
-            .catch((error) => {
-                
-                console.error('Error saving record:', error);
-            });
+        .then(() => {
+            console.log('Record saved successfully');
+            this.dispatchEvent(
+                new ShowToastEvent({
+                    title: 'Success',
+                    message: 'Record saved successfully',
+                    variant: 'success',
+                }),
+            );
+        })
+        .catch((error) => {
+            console.error('Error saving record:', error);
+            this.dispatchEvent(
+                new ShowToastEvent({
+                    title: 'Error',
+                    message: 'Error saving record',
+                    variant: 'error',
+                }),
+            );
+        });
     }
 
 
